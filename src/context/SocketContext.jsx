@@ -22,7 +22,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       // Initialize socket connection
-      const newSocket = io('http://localhost:3000', {
+      const newSocket = io('http://localhost:5001', {
         withCredentials: true,
       });
 

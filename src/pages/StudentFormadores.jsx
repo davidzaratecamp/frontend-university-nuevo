@@ -188,34 +188,15 @@ const StudentFormadores = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-2">
+              {/* Action Button */}
+              <div>
                 <a
-                  href={`mailto:${formador.email}`}
-                  className="flex-1 btn-primary text-center flex items-center justify-center gap-2 text-sm"
+                  href="/forum"
+                  className="w-full btn-primary text-center flex items-center justify-center gap-2"
                 >
-                  <Mail className="h-4 w-4" />
-                  Contactar
+                  <MessageCircle className="h-5 w-5" />
+                  Ir al Foro
                 </a>
-                
-                <button
-                  onClick={() => toast.info('Función de chat en desarrollo')}
-                  className="btn-secondary flex items-center justify-center gap-2 text-sm"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat
-                </button>
-              </div>
-
-              {/* Status indicator */}
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-gray-600">Disponible</span>
-                  </div>
-                  <span className="text-gray-500">Responde en ~2h</span>
-                </div>
               </div>
             </div>
           ))}

@@ -344,8 +344,8 @@ const TakeWorkshop = () => {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}>
                     <div className="aspect-square relative">
-                      <img 
-                        src={`http://localhost:3001${imageUrl}`} 
+                      <img
+                        src={`http://localhost:5001${imageUrl}`}
                         alt={`Opción ${option}`}
                         className="w-full h-full object-cover"
                       />

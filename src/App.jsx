@@ -21,6 +21,7 @@ import AdminSatisfactionDetails from './pages/AdminSatisfactionDetails';
 // Import remaining components
 import Students from './pages/Students';
 import Forum from './pages/Forum';
+import Analytics from './pages/Analytics';
 
 // Import new student components
 import TakeQuiz from './pages/TakeQuiz';
@@ -80,8 +81,15 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
-            
+
+            <Route path="/analytics" element={
+              <ProtectedRoute roles={['admin']}>
+                <Layout>
+                  <Analytics />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
             <Route path="/satisfaction-admin" element={
               <ProtectedRoute roles={['admin']}>
                 <Layout>

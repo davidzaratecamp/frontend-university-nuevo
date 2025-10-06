@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -190,6 +190,11 @@ export const forumAPI = {
   getUnreadCount: () => api.get('/forum/notifications/unread-count'),
   markNotificationRead: (id) => api.put(`/forum/notifications/${id}/mark-read`),
   markAllNotificationsRead: () => api.put('/forum/notifications/mark-all-read'),
+};
+
+// Analytics API
+export const analyticsAPI = {
+  getDashboard: () => api.get('/analytics/dashboard'),
 };
 
 export default api;

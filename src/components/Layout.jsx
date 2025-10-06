@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useForumNotifications } from '../hooks/useForumNotifications';
-import { 
-  Users, 
-  BookOpen, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
+import {
+  Users,
+  BookOpen,
+  BarChart3,
+  Settings,
+  LogOut,
   Menu,
   X,
   Home,
   Star,
-  MessageSquare
+  MessageSquare,
+  TrendingUp
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -29,6 +30,7 @@ const Layout = ({ children }) => {
         ...commonItems,
         { name: 'Usuarios', icon: Users, href: '/users' },
         { name: 'Cursos', icon: BookOpen, href: '/courses' },
+        { name: 'Analíticas', icon: TrendingUp, href: '/analytics' },
         { name: 'Foro', icon: MessageSquare, href: '/forum' },
         { name: 'Calificaciones', icon: BarChart3, href: '/grades' },
         { name: 'Satisfacción', icon: Star, href: '/satisfaction-admin' },
