@@ -22,7 +22,9 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       // Initialize socket connection
-      const newSocket = io('http://localhost:5001', {
+      // Use environment variable or fallback to localhost
+      const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+      const newSocket = io(socketUrl, {
         withCredentials: true,
       });
 
