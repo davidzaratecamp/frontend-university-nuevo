@@ -125,12 +125,16 @@ const StudentFormadores = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">
                   {formador.name}
                 </h3>
-                
-                <div className="flex items-center justify-center gap-1 text-blue-600 mb-2">
+
+                <div className={`flex items-center justify-center gap-1 mb-2 ${
+                  formador.position === 'Director de Formadores' ? 'text-purple-600' : 'text-blue-600'
+                }`}>
                   <GraduationCap className="h-4 w-4" />
-                  <span className="text-sm font-medium">Formador</span>
+                  <span className="text-sm font-medium">
+                    {formador.position || 'Formador'}
+                  </span>
                 </div>
-                
+
                 <p className="text-gray-600 text-sm">
                   {formador.bio || 'Especialista en procesos de inducción y desarrollo de competencias'}
                 </p>
@@ -156,20 +160,24 @@ const StudentFormadores = () => {
                   <Mail className="h-4 w-4 text-gray-400" />
                   <span className="text-gray-600">{formador.email}</span>
                 </div>
-                
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600">
-                    Asignado desde {new Date(formador.assigned_at).toLocaleDateString('es-ES')}
-                  </span>
-                </div>
 
-                <div className="flex items-center gap-3 text-sm">
-                  <BookOpen className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600">
-                    {formador.course_count || 0} curso(s) en común
-                  </span>
-                </div>
+                {formador.assigned_at && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-600">
+                      Asignado desde {new Date(formador.assigned_at).toLocaleDateString('es-ES')}
+                    </span>
+                  </div>
+                )}
+
+                {formador.position !== 'Director de Formadores' && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <BookOpen className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-600">
+                      {formador.course_count || 0} curso(s) en común
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Expertise Areas */}
