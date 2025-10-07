@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { activitiesAPI, workshopsAPI, quizzesAPI, uploadAPI, contentBlocksAPI, workshopQuestionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getFileUrl } from '../config/api.config';
+import { useTusUpload } from '../hooks/useTusUpload';
 import {
   ArrowLeft,
   Plus,
@@ -25,6 +26,7 @@ const ActivityDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { uploadVideo: tusUploadVideo, uploading: tusUploading, progress: tusProgress } = useTusUpload();
   const [activity, setActivity] = useState(null);
   const [contentBlocks, setContentBlocks] = useState([]);
   const [workshops, setWorkshops] = useState([]);
@@ -108,23 +110,22 @@ const ActivityDetail = () => {
     try {
       setUploading(true);
       setUploadProgress(0);
-      let response;
-
-      // Progress callback
-      const onUploadProgress = (progressEvent) => {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setUploadProgress(percentCompleted);
-      };
 
       if (type === 'video') {
-        response = await uploadAPI.uploadVideo(file, onUploadProgress);
+        // Use Tus for videos (resumable upload)
+        const result = await tusUploadVideo(file);
         toast.success('Video subido exitosamente');
+        return result.fileUrl;
       } else if (type === 'image') {
-        response = await uploadAPI.uploadImage(file, onUploadProgress);
+        // Use regular upload for images
+        const onUploadProgress = (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        };
+        const response = await uploadAPI.uploadImage(file, onUploadProgress);
         toast.success('Imagen subida exitosamente');
+        return response.data.fileUrl;
       }
-
-      return response.data.fileUrl;
     } catch (error) {
       toast.error(`Error al subir ${type === 'video' ? 'video' : 'imagen'}: ${error.message}`);
       console.error('Upload error:', error);
@@ -787,24 +788,31 @@ const ActivityDetail = () => {
                       >
                         <Upload className="h-8 w-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600">
-                          {uploading ? `Subiendo... ${uploadProgress}%` : `Subir ${contentBlockData.block_type === 'video' ? 'video' : 'imagen'}`}
+                          {(uploading || tusUploading) ? `Subiendo... ${contentBlockData.block_type === 'video' ? tusProgress : uploadProgress}%` : `Subir ${contentBlockData.block_type === 'video' ? 'video' : 'imagen'}`}
                         </span>
                       </label>
 
-                      {uploading && (
+                      {(uploading || tusUploading) && (
                         <div className="mt-3 w-full">
                           <div className="flex justify-between mb-1">
-                            <span className="text-xs font-medium text-blue-700">Progreso</span>
-                            <span className="text-xs font-medium text-blue-700">{uploadProgress}%</span>
+                            <span className="text-xs font-medium text-blue-700">
+                              {contentBlockData.block_type === 'video' ? 'Subida resumible' : 'Progreso'}
+                            </span>
+                            <span className="text-xs font-medium text-blue-700">
+                              {contentBlockData.block_type === 'video' ? tusProgress : uploadProgress}%
+                            </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
                               className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                              style={{ width: `${uploadProgress}%` }}
+                              style={{ width: `${contentBlockData.block_type === 'video' ? tusProgress : uploadProgress}%` }}
                             ></div>
                           </div>
                           <p className="text-xs text-gray-500 mt-1 text-center">
-                            {uploadProgress < 100 ? 'No cierres esta ventana...' : 'Procesando...'}
+                            {contentBlockData.block_type === 'video'
+                              ? (tusProgress < 100 ? 'Subiendo en chunks... Puedes pausar y reanudar' : 'Procesando...')
+                              : (uploadProgress < 100 ? 'No cierres esta ventana...' : 'Procesando...')
+                            }
                           </p>
                         </div>
                       )}
@@ -829,10 +837,10 @@ const ActivityDetail = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={uploading || (contentBlockData.block_type === 'text' ? !contentBlockData.content_text : !contentBlockData.content_url)}
+                    disabled={(uploading || tusUploading) || (contentBlockData.block_type === 'text' ? !contentBlockData.content_text : !contentBlockData.content_url)}
                     className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploading ? `Subiendo... ${uploadProgress}%` : editingItem ? 'Actualizar' : 'Crear'}
+                    {(uploading || tusUploading) ? `Subiendo... ${contentBlockData.block_type === 'video' ? tusProgress : uploadProgress}%` : editingItem ? 'Actualizar' : 'Crear'}
                   </button>                </div>
               </form>
             ) : modalType === 'workshop' ? (
