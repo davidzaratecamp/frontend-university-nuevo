@@ -145,18 +145,22 @@ export const satisfactionAPI = {
 
 // Upload API
 export const uploadAPI = {
-  uploadVideo: (file) => {
+  uploadVideo: (file, onUploadProgress) => {
     const formData = new FormData();
     formData.append('video', file);
     return api.post('/upload/video', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 600000, // 10 minutes timeout for large videos
+      onUploadProgress: onUploadProgress, // Progress callback
     });
   },
-  uploadImage: (file) => {
+  uploadImage: (file, onUploadProgress) => {
     const formData = new FormData();
     formData.append('image', file);
     return api.post('/upload/image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000, // 2 minutes timeout for images
+      onUploadProgress: onUploadProgress,
     });
   },
   getFiles: (type) => api.get(`/upload/files?type=${type || ''}`),
