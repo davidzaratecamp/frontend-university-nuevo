@@ -26,6 +26,10 @@ export const SocketProvider = ({ children }) => {
       const socketUrl = API_CONFIG.BASE_URL;
       const newSocket = io(socketUrl, {
         withCredentials: true,
+        timeout: 600000, // 10 minutes timeout for large uploads
+        reconnectionDelay: 5000,
+        reconnectionDelayMax: 10000,
+        reconnectionAttempts: 5,
       });
 
       newSocket.on('connect', () => {

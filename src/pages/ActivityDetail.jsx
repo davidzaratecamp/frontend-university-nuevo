@@ -35,7 +35,8 @@ const ActivityDetail = () => {
   const [modalType, setModalType] = useState('content'); // 'content', 'workshop', 'quiz'
   const [editingItem, setEditingItem] = useState(null);
   const [uploading, setUploading] = useState(false);
-  
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   // Content block form data
   const [contentBlockData, setContentBlockData] = useState({
     block_type: 'text',
@@ -106,21 +107,31 @@ const ActivityDetail = () => {
   const handleFileUpload = async (file, type) => {
     try {
       setUploading(true);
+      setUploadProgress(0);
       let response;
-      
+
+      // Progress callback
+      const onUploadProgress = (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+      };
+
       if (type === 'video') {
-        response = await uploadAPI.uploadVideo(file);
+        response = await uploadAPI.uploadVideo(file, onUploadProgress);
+        toast.success('Video subido exitosamente');
       } else if (type === 'image') {
-        response = await uploadAPI.uploadImage(file);
+        response = await uploadAPI.uploadImage(file, onUploadProgress);
+        toast.success('Imagen subida exitosamente');
       }
-      
+
       return response.data.fileUrl;
     } catch (error) {
-      toast.error('Error al subir archivo');
+      toast.error(`Error al subir ${type === 'video' ? 'video' : 'imagen'}: ${error.message}`);
       console.error('Upload error:', error);
       throw error;
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -770,18 +781,37 @@ const ActivityDetail = () => {
                         className="hidden"
                         id="content-file-upload"
                       />
-                      <label 
-                        htmlFor="content-file-upload" 
+                      <label
+                        htmlFor="content-file-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
                         <Upload className="h-8 w-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600">
-                          {uploading ? 'Subiendo...' : `Subir ${contentBlockData.block_type === 'video' ? 'video' : 'imagen'}`}
+                          {uploading ? `Subiendo... ${uploadProgress}%` : `Subir ${contentBlockData.block_type === 'video' ? 'video' : 'imagen'}`}
                         </span>
                       </label>
-                      
-                      {contentBlockData.content_url && (
-                        <div className="mt-2 text-sm text-green-600">
+
+                      {uploading && (
+                        <div className="mt-3 w-full">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-xs font-medium text-blue-700">Progreso</span>
+                            <span className="text-xs font-medium text-blue-700">{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 text-center">
+                            {uploadProgress < 100 ? 'No cierres esta ventana...' : 'Procesando...'}
+                          </p>
+                        </div>
+                      )}
+
+                      {contentBlockData.content_url && !uploading && (
+                        <div className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                          <CheckCircle className="h-4 w-4" />
                           ✓ Archivo subido exitosamente
                         </div>
                       )}
@@ -800,11 +830,10 @@ const ActivityDetail = () => {
                   <button
                     type="submit"
                     disabled={uploading || (contentBlockData.block_type === 'text' ? !contentBlockData.content_text : !contentBlockData.content_url)}
-                    className="btn-primary flex-1 disabled:opacity-50"
+                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploading ? 'Subiendo...' : editingItem ? 'Actualizar' : 'Crear'}
-                  </button>
-                </div>
+                    {uploading ? `Subiendo... ${uploadProgress}%` : editingItem ? 'Actualizar' : 'Crear'}
+                  </button>                </div>
               </form>
             ) : modalType === 'workshop' ? (
               <form onSubmit={handleWorkshopSubmit} className="space-y-4">
