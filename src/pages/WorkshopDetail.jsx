@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workshopsAPI, workshopQuestionsAPI, uploadAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
+import { getFileUrl } from '../config/api.config';
+import {
   ArrowLeft,
-  Plus, 
-  Edit2, 
-  Trash2, 
+  Plus,
+  Edit2,
+  Trash2,
   Upload,
   Image,
   Settings,
@@ -233,7 +234,7 @@ const WorkshopDetail = () => {
         {questionData[optionKey] && (
           <div className="mt-2">
             <img
-              src={`http://localhost:5001${questionData[optionKey]}`}
+              src={getFileUrl(questionData[optionKey])}
               alt={`Opción ${optionLabel}`}
               className="max-w-full h-32 object-contain rounded"
             />
@@ -427,7 +428,7 @@ const WorkshopDetail = () => {
                               
                               {question[imageKey] ? (
                                 <img
-                                  src={`http://localhost:5001${question[imageKey]}`}
+                                  src={getFileUrl(question[imageKey])}
                                   alt={`Opción ${option}`}
                                   className="w-full h-24 object-contain rounded"
                                 />

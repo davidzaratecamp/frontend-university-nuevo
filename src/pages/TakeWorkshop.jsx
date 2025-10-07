@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workshopsAPI, workshopQuestionsAPI, gradesAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
+import { getFileUrl } from '../config/api.config';
+import {
   ArrowLeft,
   CheckCircle,
   Clock,
@@ -339,13 +340,13 @@ const TakeWorkshop = () => {
                   />
                   
                   <div className={`border-2 rounded-lg overflow-hidden ${
-                    answers[currentQuestion.id] === option 
-                      ? 'border-primary-500 bg-primary-50' 
+                    answers[currentQuestion.id] === option
+                      ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}>
                     <div className="aspect-square relative">
                       <img
-                        src={`http://localhost:5001${imageUrl}`}
+                        src={getFileUrl(imageUrl)}
                         alt={`Opción ${option}`}
                         className="w-full h-full object-cover"
                       />

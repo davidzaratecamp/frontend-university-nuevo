@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api.config';
 
 const SocketContext = createContext();
 
@@ -22,8 +23,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       // Initialize socket connection
-      // Use environment variable or fallback to localhost
-      const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+      const socketUrl = API_CONFIG.BASE_URL;
       const newSocket = io(socketUrl, {
         withCredentials: true,
       });

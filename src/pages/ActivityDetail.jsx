@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { activitiesAPI, workshopsAPI, quizzesAPI, uploadAPI, contentBlocksAPI, workshopQuestionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
+import { getFileUrl } from '../config/api.config';
+import {
   ArrowLeft,
-  Plus, 
-  Edit2, 
-  Trash2, 
+  Plus,
+  Edit2,
+  Trash2,
   Upload,
   FileText,
   Image,
@@ -509,7 +510,7 @@ const ActivityDetail = () => {
 
                           {block.block_type === 'image' && block.content_url && (
                             <img
-                              src={`http://localhost:5001${block.content_url}`}
+                              src={getFileUrl(block.content_url)}
                               alt="Contenido"
                               className="max-w-md rounded-lg"
                             />
@@ -517,7 +518,7 @@ const ActivityDetail = () => {
 
                           {block.block_type === 'video' && block.content_url && (
                             <video controls className="max-w-md rounded-lg">
-                              <source src={`http://localhost:5001${block.content_url}`} type="video/mp4" />
+                              <source src={getFileUrl(block.content_url)} type="video/mp4" />
                               Tu navegador no soporta el elemento de video.
                             </video>
                           )}
