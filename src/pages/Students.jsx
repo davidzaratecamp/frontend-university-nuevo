@@ -193,7 +193,7 @@ const Students = () => {
         }
         toast.success(message);
       } else {
-        toast.info('No se realizaron cambios');
+        toast('No se realizaron cambios');
       }
       
       setShowAssignModal(false);
@@ -573,6 +573,13 @@ const Students = () => {
                   </label>
                 );
               })}
+              
+              {courses.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No hay cursos disponibles para asignar</p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4 mt-4 border-t">

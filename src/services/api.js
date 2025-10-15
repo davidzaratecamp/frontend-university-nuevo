@@ -17,6 +17,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
@@ -103,6 +104,7 @@ export const assignmentsAPI = {
   getAll: () => api.get('/assignments'),
   getByStudent: (studentId) => api.get(`/assignments/student/${studentId}`),
   getStudentCourses: (studentId) => api.get(`/assignments/student/${studentId}/courses`),
+  getStudentsForCourse: (courseId) => api.get(`/assignments/course/${courseId}/students`),
   create: (assignmentData) => api.post('/assignments', assignmentData),
   delete: (id) => api.delete(`/assignments/${id}`),
   removeCourse: (studentId, courseId) => api.delete(`/assignments/student/${studentId}/course/${courseId}`),

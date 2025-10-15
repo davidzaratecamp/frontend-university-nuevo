@@ -42,6 +42,7 @@ const Layout = ({ children }) => {
         ...commonItems,
         { name: 'Estudiantes', icon: Users, href: '/students' },
         { name: 'Cursos', icon: BookOpen, href: '/courses' },
+        { name: 'Analíticas', icon: TrendingUp, href: '/analytics' },
         { name: 'Foro', icon: MessageSquare, href: '/forum' },
         { name: 'Calificaciones', icon: BarChart3, href: '/grades' },
       ];

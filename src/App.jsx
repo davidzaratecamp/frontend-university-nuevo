@@ -83,7 +83,7 @@ function App() {
             } />
 
             <Route path="/analytics" element={
-              <ProtectedRoute roles={['admin']}>
+              <ProtectedRoute roles={['admin', 'formador']}>
                 <Layout>
                   <Analytics />
                 </Layout>
