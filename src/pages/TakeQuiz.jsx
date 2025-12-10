@@ -104,45 +104,30 @@ const TakeQuiz = () => {
     try {
       setSubmitting(true);
       
-      // Calculate score
-      let correctAnswers = 0;
-      let totalPoints = 0;
+      // Calculate total possible points (we don't have access to correct answers on frontend)
+      const totalPoints = quiz.questions.reduce((sum, question) => sum + question.points, 0);
       
-      quiz.questions.forEach(question => {
-        totalPoints += question.points;
-        // Convert both to numbers for proper comparison
-        const studentAnswer = parseInt(answers[question.id]);
-        const correctAnswer = parseInt(question.correct_answer);
-        
-        if (studentAnswer === correctAnswer) {
-          correctAnswers += question.points;
-        }
-      });
-      
-      const percentage = Math.round((correctAnswers / totalPoints) * 100);
-      
-      // Submit grade
+      // Submit grade - let backend calculate the score
       const gradeData = {
         student_id: user.id,
         quiz_id: parseInt(id),
-        score: correctAnswers,
+        score: 0, // Backend will calculate this
         max_score: totalPoints,
-        percentage: percentage,
+        percentage: 0, // Backend will calculate this
         answers: answers
       };
       
-      await gradesAPI.submitQuizGrade(gradeData);
+      // Submit and get results from server
+      const response = await gradesAPI.submitQuizGrade(gradeData);
       
+      // Use server response for accurate results
       setResult({
-        score: correctAnswers,
-        maxScore: totalPoints,
-        percentage: percentage,
-        passed: percentage >= quiz.passing_score,
+        score: response.data.score || 0,
+        maxScore: response.data.max_score || totalPoints,
+        percentage: response.data.percentage || 0,
+        passed: (response.data.percentage || 0) >= quiz.passing_score,
         totalQuestions: quiz.questions.length,
-        correctCount: Object.keys(answers).filter(qId => {
-          const question = quiz.questions.find(q => q.id == qId);
-          return question && answers[qId] === question.correct_answer;
-        }).length
+        correctCount: response.data.correct_count || 0
       });
       
       setQuizCompleted(true);
