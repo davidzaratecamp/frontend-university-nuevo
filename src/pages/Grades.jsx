@@ -133,15 +133,17 @@ const Grades = () => {
         acc[key] = {
           ...grade,
           total_evaluations: 0,
-          avg_percentage: 0,
+          sum_percentage: 0, // Changed: use sum instead of average
           courses: new Set(),
-          last_activity: grade.completed_at
+          last_activity: grade.completed_at,
+          all_percentages: [] // Store all percentages for correct calculation
         };
       }
       
       acc[key].courses.add(grade.course_title);
       acc[key].total_evaluations++;
-      acc[key].avg_percentage = ((acc[key].avg_percentage * (acc[key].total_evaluations - 1)) + grade.percentage) / acc[key].total_evaluations;
+      acc[key].sum_percentage += (grade.percentage || 0); // Add percentage to sum
+      acc[key].all_percentages.push(grade.percentage || 0); // Store individual percentages
       
       // Keep the most recent activity date
       if (new Date(grade.completed_at) > new Date(acc[key].last_activity)) {
@@ -151,12 +153,18 @@ const Grades = () => {
       return acc;
     }, {});
 
-    // Convert back to array and add course count
-    const uniqueStudents = Object.values(studentGrades).map(student => ({
-      ...student,
-      course_count: student.courses.size,
-      avg_percentage: Math.round(student.avg_percentage)
-    }));
+    // Convert back to array and calculate correct average
+    const uniqueStudents = Object.values(studentGrades).map(student => {
+      const correctAverage = student.total_evaluations > 0 
+        ? student.sum_percentage / student.total_evaluations 
+        : 0;
+        
+      return {
+        ...student,
+        course_count: student.courses.size,
+        avg_percentage: Math.round(correctAverage) // Use correct average
+      };
+    });
 
     setFilteredGrades(uniqueStudents);
   };
@@ -262,7 +270,7 @@ const Grades = () => {
       // Calcular datos del estudiante
       const studentGrades = grades.filter(g => g.student_name === grade.student_name);
       const studentAverage = studentGrades.length > 0 ? 
-        Math.round(studentGrades.reduce((sum, g) => sum + parseFloat(g.percentage), 0) / studentGrades.length) : 0;
+        Math.round(studentGrades.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0) / studentGrades.length) : 0;
       
       const row = [
         grade.student_name || 'N/A',
@@ -477,7 +485,7 @@ const Grades = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Promedio General</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {Math.round(summary.general?.overall_average_score || summary.average_percentage || 0)}%
+                  {Math.round(summary.general?.overall_average_score || summary.average_percentage || 0) || 0}%
                 </p>
               </div>
             </div>
@@ -907,13 +915,22 @@ const Grades = () => {
               const totalWorkshops = workshopGrades.length;
               const totalEvaluations = totalQuizzes + totalWorkshops;
               
-              const averageQuiz = totalQuizzes > 0 ? quizGrades.reduce((sum, g) => sum + g.percentage, 0) / totalQuizzes : 0;
-              const averageWorkshop = totalWorkshops > 0 ? workshopGrades.reduce((sum, g) => sum + g.percentage, 0) / totalWorkshops : 0;
-              const overallAverage = totalEvaluations > 0 ? ((averageQuiz * totalQuizzes) + (averageWorkshop * totalWorkshops)) / totalEvaluations : 0;
+              // Safe calculation of averages with NaN protection
+              const averageQuiz = totalQuizzes > 0 ? 
+                quizGrades.reduce((sum, g) => sum + (g.percentage || 0), 0) / totalQuizzes : 0;
+              const averageWorkshop = totalWorkshops > 0 ? 
+                workshopGrades.reduce((sum, g) => sum + (g.percentage || 0), 0) / totalWorkshops : 0;
               
-              const highestGrade = Math.max(...grades.map(g => g.percentage), 0);
-              const passedQuizzes = quizGrades.filter(g => g.percentage >= g.passing_score).length;
-              const passedWorkshops = workshopGrades.filter(g => g.percentage >= g.passing_score).length;
+              // Calculate weighted overall average safely
+              const overallAverage = totalEvaluations > 0 ? 
+                grades.reduce((sum, g) => sum + (g.percentage || 0), 0) / totalEvaluations : 0;
+              
+              // Safe calculation of highest grade
+              const validPercentages = grades.map(g => g.percentage || 0).filter(p => !isNaN(p));
+              const highestGrade = validPercentages.length > 0 ? Math.max(...validPercentages) : 0;
+              
+              const passedQuizzes = quizGrades.filter(g => (g.percentage || 0) >= (g.passing_score || 70)).length;
+              const passedWorkshops = workshopGrades.filter(g => (g.percentage || 0) >= (g.passing_score || 70)).length;
               
               return (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
