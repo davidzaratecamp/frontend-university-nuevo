@@ -29,6 +29,7 @@ const Layout = ({ children }) => {
       return [
         ...commonItems,
         { name: 'Usuarios', icon: Users, href: '/users' },
+        { name: 'Estudiantes', icon: Users, href: '/students' },
         { name: 'Cursos', icon: BookOpen, href: '/courses' },
         { name: 'Analíticas', icon: TrendingUp, href: '/analytics' },
         { name: 'Foro', icon: MessageSquare, href: '/forum' },
