@@ -108,7 +108,11 @@ export const assignmentsAPI = {
   create: (assignmentData) => api.post('/assignments', assignmentData),
   delete: (id) => api.delete(`/assignments/${id}`),
   removeCourse: (studentId, courseId) => api.delete(`/assignments/student/${studentId}/course/${courseId}`),
+  // Formador assignments
   assignFormador: (data) => api.post('/assignments/formador-students', data),
+  getFormadorAssignments: () => api.get('/assignments/formador-students'),
+  getStudentFormadores: (studentId) => api.get(`/assignments/formador-students/${studentId}`),
+  removeFormadorAssignment: (studentId, formadorId) => api.delete(`/assignments/formador-students/${studentId}/${formadorId}`),
 };
 
 // Grades API

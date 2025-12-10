@@ -13,7 +13,8 @@ import {
   Calendar,
   GraduationCap,
   ChevronRight,
-  X
+  X,
+  UserCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -21,16 +22,20 @@ const Students = () => {
   const { user, isAdmin, isFormador } = useAuth();
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [formadores, setFormadores] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showFormadorAssignModal, setShowFormadorAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedFormadores, setSelectedFormadores] = useState([]);
   const [currentlyAssignedCourses, setCurrentlyAssignedCourses] = useState([]);
+  const [currentlyAssignedFormadores, setCurrentlyAssignedFormadores] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -41,6 +46,7 @@ const Students = () => {
   useEffect(() => {
     fetchStudents();
     fetchCourses();
+    fetchFormadores();
   }, []);
 
   useEffect(() => {
@@ -66,6 +72,15 @@ const Students = () => {
       setCourses(response.data.courses);
     } catch (error) {
       console.error('Error fetching courses:', error);
+    }
+  };
+
+  const fetchFormadores = async () => {
+    try {
+      const response = await usersAPI.getFormadores();
+      setFormadores(response.data.formadores || []);
+    } catch (error) {
+      console.error('Error fetching formadores:', error);
     }
   };
 
@@ -212,6 +227,84 @@ const Students = () => {
       prev.includes(courseId) 
         ? prev.filter(id => id !== courseId)
         : [...prev, courseId]
+    );
+  };
+
+  const handleOpenFormadorAssignModal = async (student) => {
+    try {
+      setSelectedStudent(student);
+      
+      // Get currently assigned formadores for this student
+      const response = await assignmentsAPI.getStudentFormadores(student.id);
+      const currentFormadorIds = response.data.assignments.map(assignment => assignment.formador_id);
+      
+      setCurrentlyAssignedFormadores(currentFormadorIds);
+      setSelectedFormadores(currentFormadorIds);
+      setShowFormadorAssignModal(true);
+    } catch (error) {
+      toast.error('Error al cargar formadores asignados');
+      console.error('Error fetching student formadores:', error);
+    }
+  };
+
+  const handleFormadorAssignment = async () => {
+    try {
+      // Find formadores to assign (newly selected)
+      const formadoresToAssign = selectedFormadores.filter(formadorId => 
+        !currentlyAssignedFormadores.includes(formadorId)
+      );
+      
+      // Find formadores to unassign (previously selected but now unchecked)
+      const formadoresToUnassign = currentlyAssignedFormadores.filter(formadorId => 
+        !selectedFormadores.includes(formadorId)
+      );
+
+      // Execute assignments
+      const assignPromises = formadoresToAssign.map(formadorId => 
+        assignmentsAPI.assignFormador({
+          formador_id: formadorId,
+          student_id: selectedStudent.id
+        })
+      );
+      
+      // Execute unassignments
+      const unassignPromises = formadoresToUnassign.map(formadorId => 
+        assignmentsAPI.removeFormadorAssignment(selectedStudent.id, formadorId)
+      );
+      
+      await Promise.all([...assignPromises, ...unassignPromises]);
+      
+      const totalChanges = formadoresToAssign.length + formadoresToUnassign.length;
+      if (totalChanges > 0) {
+        let message = '';
+        if (formadoresToAssign.length > 0 && formadoresToUnassign.length > 0) {
+          message = `${formadoresToAssign.length} formador(es) asignado(s) y ${formadoresToUnassign.length} desasignado(s)`;
+        } else if (formadoresToAssign.length > 0) {
+          message = `${formadoresToAssign.length} formador(es) asignado(s) exitosamente`;
+        } else {
+          message = `${formadoresToUnassign.length} formador(es) desasignado(s) exitosamente`;
+        }
+        toast.success(message);
+      } else {
+        toast('No se realizaron cambios');
+      }
+      
+      setShowFormadorAssignModal(false);
+      setSelectedFormadores([]);
+      setCurrentlyAssignedFormadores([]);
+      setSelectedStudent(null);
+      fetchStudents(); // Refresh to show updated assignments
+    } catch (error) {
+      toast.error('Error al actualizar asignaciones de formadores');
+      console.error('Error updating formador assignments:', error);
+    }
+  };
+
+  const handleFormadorSelection = (formadorId) => {
+    setSelectedFormadores(prev => 
+      prev.includes(formadorId) 
+        ? prev.filter(id => id !== formadorId)
+        : [...prev, formadorId]
     );
   };
 
@@ -395,30 +488,44 @@ const Students = () => {
                 Ver Detalles
               </button>
               
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleOpenAssignModal(student)}
-                  className="flex-1 btn-secondary text-center flex items-center justify-center gap-2 text-sm"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Asignar
-                </button>
-                
-                <button
-                  onClick={() => handleEdit(student)}
-                  className="btn-outline flex items-center justify-center gap-2 text-sm"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </button>
-              
-                {isAdmin() && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
                   <button
-                    onClick={() => handleDelete(student.id)}
-                    className="btn-outline text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 text-sm"
+                    onClick={() => handleOpenAssignModal(student)}
+                    className="flex-1 btn-secondary text-center flex items-center justify-center gap-2 text-sm"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4" />
+                    Cursos
                   </button>
-                )}
+                  
+                  {isAdmin() && (
+                    <button
+                      onClick={() => handleOpenFormadorAssignModal(student)}
+                      className="flex-1 btn-secondary text-center flex items-center justify-center gap-2 text-sm"
+                    >
+                      <UserCheck className="h-4 w-4" />
+                      Formadores
+                    </button>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(student)}
+                    className="btn-outline flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+              
+                  {isAdmin() && (
+                    <button
+                      onClick={() => handleDelete(student.id)}
+                      className="btn-outline text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -595,6 +702,85 @@ const Students = () => {
                 className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex-1"
               >
                 Actualizar Asignaciones ({selectedCourses.length} seleccionados)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Formador Assignment Modal */}
+      {showFormadorAssignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-96 overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Gestionar Formadores de {selectedStudent?.name}
+              </h3>
+              <button
+                onClick={() => setShowFormadorAssignModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {formadores.map((formador) => {
+                const isCurrentlyAssigned = currentlyAssignedFormadores.includes(formador.id);
+                const isSelected = selectedFormadores.includes(formador.id);
+                
+                return (
+                  <label 
+                    key={formador.id} 
+                    className={`flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
+                      isCurrentlyAssigned ? 'bg-green-50 border-green-200' : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleFormadorSelection(formador.id)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <div className="ml-3 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium text-gray-900">{formador.name}</div>
+                        {isCurrentlyAssigned && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Asignado
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500">{formador.email}</div>
+                      <div className="text-xs text-gray-400">
+                        {formador.student_count || 0} estudiante(s) asignado(s)
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+              
+              {formadores.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <UserCheck className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No hay formadores disponibles para asignar</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4 mt-4 border-t">
+              <button
+                type="button"
+                onClick={() => setShowFormadorAssignModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex-1"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleFormadorAssignment}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex-1"
+              >
+                Actualizar Asignaciones ({selectedFormadores.length} seleccionados)
               </button>
             </div>
           </div>
