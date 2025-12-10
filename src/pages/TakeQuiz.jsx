@@ -110,7 +110,11 @@ const TakeQuiz = () => {
       
       quiz.questions.forEach(question => {
         totalPoints += question.points;
-        if (answers[question.id] === question.correct_answer) {
+        // Convert both to numbers for proper comparison
+        const studentAnswer = parseInt(answers[question.id]);
+        const correctAnswer = parseInt(question.correct_answer);
+        
+        if (studentAnswer === correctAnswer) {
           correctAnswers += question.points;
         }
       });

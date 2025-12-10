@@ -14,7 +14,9 @@ import {
   XCircle,
   Award,
   X,
-  Download
+  Download,
+  Eye,
+  FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -37,6 +39,9 @@ const Grades = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [auditData, setAuditData] = useState(null);
+  const [loadingAudit, setLoadingAudit] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -202,6 +207,20 @@ const Grades = () => {
     } catch (error) {
       toast.error('Error al cargar detalles del estudiante');
       console.error('Error fetching student details:', error);
+    }
+  };
+
+  const handleViewAnswers = async (gradeId) => {
+    try {
+      setLoadingAudit(true);
+      const response = await gradesAPI.auditGrade(gradeId);
+      setAuditData(response.data);
+      setShowAuditModal(true);
+    } catch (error) {
+      toast.error('Error al cargar las respuestas del estudiante');
+      console.error('Error loading audit data:', error);
+    } finally {
+      setLoadingAudit(false);
     }
   };
 
@@ -722,6 +741,146 @@ const Grades = () => {
         </div>
       )}
 
+      {/* Audit Modal */}
+      {showAuditModal && auditData && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-indigo-600" />
+                    Auditoría de Respuestas
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {auditData.grade.student_name} - {auditData.grade.quiz_title}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAuditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-blue-600">Resultado Almacenado</div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {auditData.stored_results.score}/{auditData.stored_results.max_score}
+                  </div>
+                  <div className="text-sm text-blue-700">{auditData.stored_results.percentage}%</div>
+                </div>
+                
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-green-600">Resultado Recalculado</div>
+                  <div className="text-2xl font-bold text-green-900">
+                    {auditData.calculated_results.score}/{auditData.calculated_results.max_score}
+                  </div>
+                  <div className="text-sm text-green-700">{auditData.calculated_results.percentage}%</div>
+                </div>
+                
+                <div className={`p-4 rounded-lg ${auditData.is_calculation_correct ? 'bg-green-50' : 'bg-red-50'}`}>
+                  <div className={`text-sm font-medium ${auditData.is_calculation_correct ? 'text-green-600' : 'text-red-600'}`}>
+                    Estado de Verificación
+                  </div>
+                  <div className={`text-2xl font-bold ${auditData.is_calculation_correct ? 'text-green-900' : 'text-red-900'}`}>
+                    {auditData.is_calculation_correct ? '✓' : '✗'}
+                  </div>
+                  <div className={`text-sm ${auditData.is_calculation_correct ? 'text-green-700' : 'text-red-700'}`}>
+                    {auditData.is_calculation_correct ? 'Correcto' : 'Error de cálculo'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Questions Audit */}
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <h4 className="font-medium text-gray-900 mb-4">Detalle de Respuestas:</h4>
+                {auditData.questions_audit.map((question, index) => (
+                  <div key={question.question_id} className={`p-4 rounded-lg border ${question.is_correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-medium text-gray-900">
+                        Pregunta {index + 1}
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${question.is_correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {question.points_earned}/{question.points_possible} puntos
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-700 mb-3">{question.question}</div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="font-medium text-gray-600 mb-1">Opciones:</div>
+                        {question.options && question.options.map((option, optIndex) => (
+                          <div key={optIndex} className={`p-2 rounded mb-1 ${
+                            optIndex === question.correct_answer ? 'bg-green-100 text-green-800' :
+                            optIndex === question.student_answer ? 'bg-red-100 text-red-800' : 'bg-gray-50'
+                          }`}>
+                            {optIndex}. {option}
+                            {optIndex === question.correct_answer && ' ✓ (Correcta)'}
+                            {optIndex === question.student_answer && optIndex !== question.correct_answer && ' ✗ (Seleccionada)'}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="font-medium text-gray-600">Respuesta del estudiante:</span>
+                            <span className={`ml-2 px-2 py-1 rounded text-xs ${question.is_correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {question.student_answer !== undefined ? question.student_answer : 'Sin respuesta'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Respuesta correcta:</span>
+                            <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                              {question.correct_answer}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Resumen:</h4>
+                <div className="grid grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Total:</span> {auditData.summary.total_questions}
+                  </div>
+                  <div className="text-green-700">
+                    <span className="font-medium">Correctas:</span> {auditData.summary.correct_answers}
+                  </div>
+                  <div className="text-red-700">
+                    <span className="font-medium">Incorrectas:</span> {auditData.summary.incorrect_answers}
+                  </div>
+                  <div className="text-gray-600">
+                    <span className="font-medium">Sin responder:</span> {auditData.summary.unanswered}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setShowAuditModal(false)}
+                  className="btn-primary"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Student Details Modal */}
       {showDetailsModal && selectedStudentDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -872,14 +1031,27 @@ const Grades = () => {
                                           style={{ width: `${Math.min(quiz.percentage, 100)}%` }}
                                         ></div>
                                       </div>
-                                      <div className="text-xs text-gray-500">
-                                        {new Date(quiz.completed_at).toLocaleDateString('es-ES', {
-                                          year: 'numeric',
-                                          month: 'short',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })} • Intento #{quiz.attempt_number}
+                                      <div className="flex justify-between items-center">
+                                        <div className="text-xs text-gray-500">
+                                          {new Date(quiz.completed_at).toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                          })} • Intento #{quiz.attempt_number}
+                                        </div>
+                                        {(isAdmin() || isFormador()) && (
+                                          <button
+                                            onClick={() => handleViewAnswers(quiz.id)}
+                                            disabled={loadingAudit}
+                                            className="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded-full transition-colors duration-200 flex items-center gap-1"
+                                            title="Ver respuestas del estudiante"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                            Ver Respuestas
+                                          </button>
+                                        )}
                                       </div>
                                     </div>
                                   ))}

@@ -125,6 +125,7 @@ export const gradesAPI = {
   submitQuizGrade: (gradeData) => api.post('/grades/quiz', gradeData),
   submitWorkshopGrade: (gradeData) => api.post('/grades/workshop', gradeData),
   getOverallStats: () => api.get('/grades/overall-stats'),
+  auditGrade: (gradeId) => api.get(`/grades/audit/${gradeId}`),
 };
 
 // Satisfaction API
