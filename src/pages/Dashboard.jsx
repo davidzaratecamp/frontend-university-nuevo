@@ -298,17 +298,11 @@ const Dashboard = () => {
 
       <div className="card">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Acciones Rápidas</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <a href="/courses" className="p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
             <div className="flex items-center">
               <BookOpen className="h-5 w-5 mr-3" />
               <span className="font-medium">Ver Mis Cursos</span>
-            </div>
-          </a>
-          <a href="/grades" className="p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
-            <div className="flex items-center">
-              <BarChart3 className="h-5 w-5 mr-3" />
-              <span className="font-medium">Ver Mis Notas</span>
             </div>
           </a>
           <a href="/formadores" className="p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
