@@ -53,7 +53,6 @@ const Layout = ({ children }) => {
       return [
         ...commonItems,
         { name: 'Mis Cursos', icon: BookOpen, href: '/courses' },
-        { name: 'Mis Notas', icon: BarChart3, href: '/grades' },
         { name: 'Foro', icon: MessageSquare, href: '/forum' },
         { name: 'Formadores', icon: Users, href: '/formadores' },
         { name: 'Satisfacción', icon: Star, href: '/satisfaction' },
