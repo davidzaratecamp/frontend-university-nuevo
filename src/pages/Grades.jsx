@@ -603,12 +603,6 @@ const Grades = () => {
                   Evaluaciones
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Promedio
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Última Actividad
                 </th>
               </tr>
@@ -645,32 +639,6 @@ const Grades = () => {
                     <div className="text-sm text-gray-500">
                       Quizzes y Talleres
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {student.avg_percentage}%
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          student.avg_percentage >= 70 ? 'bg-green-500' : student.avg_percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${Math.min(student.avg_percentage, 100)}%` }}
-                      ></div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      student.avg_percentage >= 70 ? 'text-green-600 bg-green-100' : 
-                      student.avg_percentage >= 60 ? 'text-yellow-600 bg-yellow-100' : 'text-red-600 bg-red-100'
-                    }`}>
-                      {student.avg_percentage >= 70 ? (
-                        <CheckCircle className="h-4 w-4" />
-                      ) : (
-                        <XCircle className="h-4 w-4" />
-                      )}
-                      {student.avg_percentage >= 70 ? 'Satisfactorio' : student.avg_percentage >= 60 ? 'Regular' : 'Necesita Mejora'}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(student.last_activity).toLocaleDateString('es-ES', {
