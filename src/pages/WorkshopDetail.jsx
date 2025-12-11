@@ -34,6 +34,10 @@ const WorkshopDetail = () => {
     option_b_image: '',
     option_c_image: '',
     option_d_image: '',
+    option_a_text: '',
+    option_b_text: '',
+    option_c_text: '',
+    option_d_text: '',
     correct_answer: 'A',
     points: 1
   });
@@ -107,6 +111,10 @@ const WorkshopDetail = () => {
           option_b_image: question.option_b_image,
           option_c_image: question.option_c_image,
           option_d_image: question.option_d_image,
+          option_a_text: question.option_a_text,
+          option_b_text: question.option_b_text,
+          option_c_text: question.option_c_text,
+          option_d_text: question.option_d_text,
           correct_answer: question.correct_answer,
           points: autoPoints[i]
         };
@@ -162,6 +170,10 @@ const WorkshopDetail = () => {
         option_b_image: question.option_b_image || '',
         option_c_image: question.option_c_image || '',
         option_d_image: question.option_d_image || '',
+        option_a_text: question.option_a_text || '',
+        option_b_text: question.option_b_text || '',
+        option_c_text: question.option_c_text || '',
+        option_d_text: question.option_d_text || '',
         correct_answer: question.correct_answer,
         points: question.points
       });
@@ -172,6 +184,10 @@ const WorkshopDetail = () => {
         option_b_image: '',
         option_c_image: '',
         option_d_image: '',
+        option_a_text: '',
+        option_b_text: '',
+        option_c_text: '',
+        option_d_text: '',
         correct_answer: 'A',
         points: 1
       });
@@ -188,6 +204,10 @@ const WorkshopDetail = () => {
       option_b_image: '',
       option_c_image: '',
       option_d_image: '',
+      option_a_text: '',
+      option_b_text: '',
+      option_c_text: '',
+      option_d_text: '',
       correct_answer: 'A',
       points: 1
     });
@@ -205,66 +225,97 @@ const WorkshopDetail = () => {
     }
   };
 
-  const renderImageUpload = (optionKey, optionLabel) => (
-    <div className="space-y-2">
-      <label className="form-label">Opción {optionLabel}</label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-              await handleFileUpload(file, optionKey);
-            }
-          }}
-          className="hidden"
-          id={`${optionKey}-upload`}
-        />
-        <label 
-          htmlFor={`${optionKey}-upload`} 
-          className="cursor-pointer flex flex-col items-center"
-        >
-          <Image className="h-8 w-8 text-gray-400 mb-2" />
-          <span className="text-sm text-gray-600">
-            {uploading ? 'Subiendo...' : `Subir imagen para opción ${optionLabel}`}
-          </span>
-        </label>
+  const renderOption = (optionKey, optionLabel) => {
+    const imageKey = optionKey;
+    const textKey = optionKey.replace('_image', '_text');
+    
+    return (
+      <div className="space-y-3">
+        <label className="form-label">Opción {optionLabel}</label>
         
-        {questionData[optionKey] && (
-          <div className="mt-2">
-            <img
-              src={getFileUrl(questionData[optionKey])}
-              alt={`Opción ${optionLabel}`}
-              className="max-w-full h-32 object-contain rounded"
+        {/* Text Input */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-600">Texto (opcional)</label>
+          <input
+            type="text"
+            value={questionData[textKey] || ''}
+            onChange={(e) => setQuestionData({...questionData, [textKey]: e.target.value})}
+            className="form-input"
+            placeholder={`Texto para opción ${optionLabel}`}
+          />
+        </div>
+
+        {/* Image Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-600">Imagen (opcional)</label>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  await handleFileUpload(file, imageKey);
+                }
+              }}
+              className="hidden"
+              id={`${imageKey}-upload`}
             />
-            <div className="flex items-center gap-2 mt-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm text-green-600">Imagen subida</span>
-              <button
-                type="button"
-                onClick={() => setQuestionData({...questionData, [optionKey]: ''})}
-                className="text-red-500 hover:text-red-700"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <label 
+              htmlFor={`${imageKey}-upload`} 
+              className="cursor-pointer flex flex-col items-center"
+            >
+              <Image className="h-6 w-6 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-600">
+                {uploading ? 'Subiendo...' : `Subir imagen`}
+              </span>
+            </label>
+            
+            {questionData[imageKey] && (
+              <div className="mt-2">
+                <img
+                  src={getFileUrl(questionData[imageKey])}
+                  alt={`Opción ${optionLabel}`}
+                  className="max-w-full h-24 object-contain rounded"
+                />
+                <div className="flex items-center gap-2 mt-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-green-600">Imagen subida</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuestionData({...questionData, [imageKey]: ''})}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Correct Answer Radio */}
+        <div className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="correct_answer"
+            value={optionLabel}
+            checked={questionData.correct_answer === optionLabel}
+            onChange={(e) => setQuestionData({...questionData, correct_answer: e.target.value})}
+            className="text-green-600"
+          />
+          <span className="text-sm text-gray-600">Respuesta correcta</span>
+        </div>
+        
+        {/* Validation message */}
+        {!questionData[textKey] && !questionData[imageKey] && (
+          <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+            ⚠️ Debe proporcionar al menos texto o imagen para esta opción
           </div>
         )}
       </div>
-      <div className="flex items-center gap-2 mt-2">
-        <input
-          type="radio"
-          name="correct_answer"
-          value={optionLabel}
-          checked={questionData.correct_answer === optionLabel}
-          onChange={(e) => setQuestionData({...questionData, correct_answer: e.target.value})}
-          className="text-green-600"
-        />
-        <span className="text-sm text-gray-600">Respuesta correcta</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -332,9 +383,17 @@ const WorkshopDetail = () => {
               <Image className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Opciones con Imagen</p>
+              <p className="text-sm font-medium text-gray-600">Opciones Totales</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {questions.reduce((sum, q) => sum + [q.option_a_image, q.option_b_image, q.option_c_image, q.option_d_image].filter(opt => opt).length, 0)}
+                {questions.reduce((sum, q) => {
+                  const options = [
+                    q.option_a_image || q.option_a_text,
+                    q.option_b_image || q.option_b_text,
+                    q.option_c_image || q.option_c_text,
+                    q.option_d_image || q.option_d_text
+                  ].filter(opt => opt);
+                  return sum + options.length;
+                }, 0)}
               </p>
             </div>
           </div>
@@ -413,7 +472,10 @@ const WorkshopDetail = () => {
                       <div className="grid grid-cols-2 gap-4 ml-8">
                         {['A', 'B', 'C', 'D'].map((option) => {
                           const imageKey = `option_${option.toLowerCase()}_image`;
+                          const textKey = `option_${option.toLowerCase()}_text`;
                           const isCorrect = question.correct_answer === option;
+                          const hasImage = question[imageKey];
+                          const hasText = question[textKey];
                           
                           return (
                             <div key={option} className={`border rounded-lg p-3 ${isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
@@ -426,17 +488,25 @@ const WorkshopDetail = () => {
                                 {isCorrect && <CheckCircle className="h-4 w-4 text-green-500" />}
                               </div>
                               
-                              {question[imageKey] ? (
-                                <img
-                                  src={getFileUrl(question[imageKey])}
-                                  alt={`Opción ${option}`}
-                                  className="w-full h-24 object-contain rounded"
-                                />
-                              ) : (
-                                <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center">
-                                  <Image className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
+                              <div className="space-y-2">
+                                {hasText && (
+                                  <div className="text-sm text-gray-700 p-2 bg-gray-50 rounded">
+                                    {question[textKey]}
+                                  </div>
+                                )}
+                                
+                                {hasImage ? (
+                                  <img
+                                    src={getFileUrl(question[imageKey])}
+                                    alt={`Opción ${option}`}
+                                    className="w-full h-20 object-contain rounded"
+                                  />
+                                ) : !hasText && (
+                                  <div className="w-full h-20 bg-gray-100 rounded flex items-center justify-center">
+                                    <Image className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
@@ -495,10 +565,10 @@ const WorkshopDetail = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderImageUpload('option_a_image', 'A')}
-                {renderImageUpload('option_b_image', 'B')}
-                {renderImageUpload('option_c_image', 'C')}
-                {renderImageUpload('option_d_image', 'D')}
+                {renderOption('option_a_image', 'A')}
+                {renderOption('option_b_image', 'B')}
+                {renderOption('option_c_image', 'C')}
+                {renderOption('option_d_image', 'D')}
               </div>
 
               <div className="bg-blue-50 p-3 rounded-lg">
@@ -517,7 +587,12 @@ const WorkshopDetail = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={uploading || !questionData.question || !questionData.option_a_image || !questionData.option_b_image || !questionData.option_c_image || !questionData.option_d_image}
+                  disabled={uploading || !questionData.question || 
+                    !(questionData.option_a_text || questionData.option_a_image) ||
+                    !(questionData.option_b_text || questionData.option_b_image) ||
+                    !(questionData.option_c_text || questionData.option_c_image) ||
+                    !(questionData.option_d_text || questionData.option_d_image)
+                  }
                   className="btn-primary flex-1 disabled:opacity-50"
                 >
                   {uploading ? 'Subiendo...' : editingQuestion ? 'Actualizar' : 'Crear'} Pregunta

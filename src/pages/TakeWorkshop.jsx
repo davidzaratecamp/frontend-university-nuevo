@@ -140,10 +140,6 @@ const TakeWorkshop = () => {
     return Object.keys(answers).length;
   };
 
-  const getOptionLabel = (option) => {
-    const labels = { 'A': 'Opción A', 'B': 'Opción B', 'C': 'Opción C', 'D': 'Opción D' };
-    return labels[option] || option;
-  };
 
   if (loading) {
     return (
@@ -315,11 +311,14 @@ const TakeWorkshop = () => {
             </span>
           </div>
 
-          {/* Visual options in grid */}
+          {/* Options in grid */}
           <div className="grid grid-cols-2 gap-6">
             {['A', 'B', 'C', 'D'].map((option) => {
               const imageUrl = currentQuestion[`option_${option.toLowerCase()}_image`];
-              if (!imageUrl) return null;
+              const textContent = currentQuestion[`option_${option.toLowerCase()}_text`];
+              
+              // Only show options that have content (either text or image)
+              if (!imageUrl && !textContent) return null;
               
               return (
                 <label 
@@ -344,34 +343,65 @@ const TakeWorkshop = () => {
                       ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}>
-                    <div className="aspect-square relative">
-                      <img
-                        src={getFileUrl(imageUrl)}
-                        alt={`Opción ${option}`}
-                        className="w-full h-full object-cover"
-                      />
-                      
-                      {/* Option label overlay */}
-                      <div className={`absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                        answers[currentQuestion.id] === option 
-                          ? 'bg-primary-600' 
-                          : 'bg-gray-600 bg-opacity-75'
-                      }`}>
-                        {option}
-                      </div>
-                      
-                      {/* Selected indicator */}
-                      {answers[currentQuestion.id] === option && (
-                        <div className="absolute inset-0 bg-primary-600 bg-opacity-10 flex items-center justify-center">
-                          <div className="bg-primary-600 rounded-full p-2">
-                            <CheckCircle className="h-6 w-6 text-white" />
-                          </div>
+                    {imageUrl ? (
+                      <div className="aspect-square relative">
+                        <img
+                          src={getFileUrl(imageUrl)}
+                          alt={`Opción ${option}`}
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* Option label overlay */}
+                        <div className={`absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                          answers[currentQuestion.id] === option 
+                            ? 'bg-primary-600' 
+                            : 'bg-gray-600 bg-opacity-75'
+                        }`}>
+                          {option}
                         </div>
-                      )}
-                    </div>
+                        
+                        {/* Selected indicator */}
+                        {answers[currentQuestion.id] === option && (
+                          <div className="absolute inset-0 bg-primary-600 bg-opacity-10 flex items-center justify-center">
+                            <div className="bg-primary-600 rounded-full p-2">
+                              <CheckCircle className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-6 min-h-[120px] flex items-center justify-center relative">
+                        <div className="text-center">
+                          <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center text-white font-bold ${
+                            answers[currentQuestion.id] === option 
+                              ? 'bg-primary-600' 
+                              : 'bg-gray-600'
+                          }`}>
+                            {option}
+                          </div>
+                          <p className="text-gray-900 font-medium">{textContent}</p>
+                        </div>
+                        
+                        {/* Selected indicator for text-only options */}
+                        {answers[currentQuestion.id] === option && (
+                          <div className="absolute top-2 right-2">
+                            <div className="bg-primary-600 rounded-full p-1">
+                              <CheckCircle className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
-                    <div className="p-3 text-center">
-                      <span className="font-medium text-gray-900">{getOptionLabel(option)}</span>
+                    {/* Text content below image if both exist */}
+                    {imageUrl && textContent && (
+                      <div className="p-3 border-t">
+                        <p className="text-sm text-gray-700 text-center">{textContent}</p>
+                      </div>
+                    )}
+                    
+                    <div className="p-3 text-center bg-gray-50">
+                      <span className="font-medium text-gray-900">Opción {option}</span>
                     </div>
                   </div>
                 </label>
